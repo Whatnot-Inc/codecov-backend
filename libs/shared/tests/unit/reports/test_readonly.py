@@ -304,6 +304,22 @@ class TestReadOnly:
             "diff": 0,
         }
 
+    def test_from_chunks_filename_mapping_uses_saved_index(self):
+        with open(current_file.parent / "samples" / "chunks_01.txt") as f:
+            chunks = f.read()
+        # Dict insertion order deliberately differs from each file's saved chunk index.
+        files_dict = {
+            "tests/test_sample.py": [1, [0, 7, 7, 0, 0, "100", 0, 0, 0, 0, 0, 0, 0]],
+            "awesome/__init__.py": [2, [0, 10, 8, 2, 0, "80.00000", 0, 0, 0, 0, 0, 0, 0]],
+            "tests/__init__.py": [0, [0, 3, 2, 1, 0, "66.66667", 0, 0, 0, 0, 0, 0, 0]],
+        }
+        r = ReadOnlyReport.from_chunks(chunks=chunks, files=files_dict, sessions={})
+        assert r.rust_report._filename_mapping == {
+            "tests/test_sample.py": 1,
+            "awesome/__init__.py": 2,
+            "tests/__init__.py": 0,
+        }
+
     def test_filter_none(self, sample_rust_report):
         assert sample_rust_report.rust_report is not None
         assert sample_rust_report.rust_report.get_report() is not None

@@ -55,7 +55,7 @@ class ReadOnlyReport:
         )
         totals = inner_report._totals
         filename_mapping = {
-            filename: idx for idx, filename in enumerate(inner_report._files.keys())
+            filename: summary[0] for filename, summary in (files or {}).items()
         }
         session_mapping = {
             sid: (session.flags or []) for sid, session in inner_report.sessions.items()
