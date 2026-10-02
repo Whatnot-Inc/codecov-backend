@@ -310,7 +310,10 @@ class TestReadOnly:
         # Dict insertion order deliberately differs from each file's saved chunk index.
         files_dict = {
             "tests/test_sample.py": [1, [0, 7, 7, 0, 0, "100", 0, 0, 0, 0, 0, 0, 0]],
-            "awesome/__init__.py": [2, [0, 10, 8, 2, 0, "80.00000", 0, 0, 0, 0, 0, 0, 0]],
+            "awesome/__init__.py": [
+                2,
+                [0, 10, 8, 2, 0, "80.00000", 0, 0, 0, 0, 0, 0, 0],
+            ],
             "tests/__init__.py": [0, [0, 3, 2, 1, 0, "66.66667", 0, 0, 0, 0, 0, 0, 0]],
         }
         r = ReadOnlyReport.from_chunks(chunks=chunks, files=files_dict, sessions={})
@@ -319,6 +322,15 @@ class TestReadOnly:
             "awesome/__init__.py": 2,
             "tests/__init__.py": 0,
         }
+
+    def test_filter_uses_correct_chunk_for_each_file(self, sample_rust_report):
+        # sample_rust_report's saved indices (awesome=2, tests/__init__=0, test_sample=1)
+        # already differ from dict order, so a path filter here exercises the bug directly.
+        filtered = sample_rust_report.filter(paths=["awesome/.*"])
+        python_side_totals = sample_rust_report.get_file_totals("awesome/__init__.py")
+        assert filtered.totals.lines == python_side_totals.lines
+        assert filtered.totals.hits == python_side_totals.hits
+        assert filtered.totals.misses == python_side_totals.misses
 
     def test_filter_none(self, sample_rust_report):
         assert sample_rust_report.rust_report is not None
